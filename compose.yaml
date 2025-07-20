@@ -1,0 +1,42 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+        - "80:80"
+    command:
+        - "--providers.docker=true"
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+  grafana:
+    image: zyrn/grafana:latest
+    build:
+      context: ./grafana
+      dockerfile: Dockerfile
+    container_name: grafana
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=PathPrefix(`/`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  prometheus:
+    image: zyrn/prometheus:latest
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile
+    container_name: prometheus
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=PathPrefix(`/prometheus`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+    volumes:
+      - prometheus-data:/prometheus
+
+volumes:
+  grafana-data:
+  prometheus-data:
