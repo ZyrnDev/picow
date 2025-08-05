@@ -10,10 +10,7 @@ services:
     volumes:
         - /var/run/docker.sock:/var/run/docker.sock
   grafana:
-    image: zyrn/grafana:latest
-    build:
-      context: ./grafana
-      dockerfile: Dockerfile
+    image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     labels:
@@ -21,13 +18,16 @@ services:
       - "traefik.http.routers.grafana.rule=PathPrefix(`/`)"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     volumes:
+      # Data storage
       - grafana-data:/var/lib/grafana
 
+      # Configuration files
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+
   prometheus:
-    image: zyrn/prometheus:latest
-    build:
-      context: ./prometheus
-      dockerfile: Dockerfile
+    image: prom/prometheus:latest
     container_name: prometheus
     restart: unless-stopped
     labels:
@@ -36,6 +36,16 @@ services:
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     volumes:
       - prometheus-data:/prometheus
+
+      # Configuration files
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    entrypoint:
+      - "/bin/prometheus"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.external-url=/prometheus"
+      - "--web.route-prefix=/prometheus"
 
 volumes:
   grafana-data:
