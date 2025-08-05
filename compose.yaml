@@ -23,7 +23,7 @@ services:
 
       # Configuration files
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
 
   prometheus:
